@@ -18,8 +18,6 @@ bees-own[
 flowers-own[
   life-time
   pollinated?
-  has-pesticides?
-  has-herbicides?
 ]
 
 to startup
@@ -49,9 +47,7 @@ to setup
     setxy random-xcor random-ycor
     set pollinated? false
     set life-time random flowers-life-max-time
-    set shape "flower"
-    set has-pesticides? false
-    set has-herbicides? false]
+    ]
   reset-ticks
 end
 
@@ -61,22 +57,24 @@ to go
   ask bees with [pollinating?] [if pollination-time = ticks [set pollinating? false fly]]
   ask bees with [new-trip > 0 and not pollinating?] [search-for-flowers]
   ask bees with [new-trip <= 0] [face beehive 0 fd 0.5 mission-make-or-eat-honey]
-  ask flowers with [life-time = 0] [
-    if pollinated? and not has-herbicides? [hatch 1 [
+  ask flowers with [life-time <= 0] [
+    if pollinated? [hatch 1 [
       setxy random-xcor random-ycor
       set pollinated? false
       set life-time flowers-life-max-time
       set shape "flower"
-      set has-pesticides? false
     ]]
     die
   ]
   ask bees [set new-trip new-trip - 1]
+  if any? bees and n-ticks-for-a-bee > 0 and ticks mod n-ticks-for-a-bee = 0 [ask one-of bees [die]]
+  if any? flowers and n-ticks-for-a-flower > 0 and ticks mod n-ticks-for-a-flower = 0 [ask one-of flowers [die]]
+  if not any? bees and not any? flowers [stop]
 end
 
 to search-for-flowers
   let flowers-in-sight flowers in-cone 5 90
-  ifelse any? flowers-in-sight with [not has-herbicides?][
+  ifelse any? flowers-in-sight [
     let target-flower one-of flowers-in-sight
     face target-flower
     fd 0.5
@@ -95,7 +93,6 @@ to pollinate [target]
   set pollination-time ticks + 5
   ask target [set pollinated? true]
   set n-flowers-pollinated n-flowers-pollinated + 1
-  if [has-pesticides?] of target [die]
 end
 
 to fly
@@ -105,11 +102,11 @@ end
 
 to mission-make-or-eat-honey
   if patch-here = [patch-here] of beehive 0 [
-    if n-flowers-pollinated > 0 [set honey honey + 1]
+    if n-flowers-pollinated > 0 [set honey honey + n-flowers-pollinated * 0.1]
     if n-flowers-pollinated = 0 and honey > 0 [set honey honey - 1]
     set n-flowers-pollinated 0
     set new-trip new-trip-max-time
-    if honey = 0 [die]
+    if honey <= 0 [set honey 0 die]
   ]
 end
 @#$#@#$#@
@@ -143,16 +140,16 @@ ticks
 BUTTON
 20
 460
-93
+94
 493
-NIL
+Setup
 setup\n
 NIL
 1
 T
 OBSERVER
 NIL
-NIL
+S
 NIL
 NIL
 1
@@ -162,14 +159,14 @@ BUTTON
 502
 94
 535
-NIL
+Go
 go\n
 T
 1
 T
 OBSERVER
 NIL
-NIL
+G
 NIL
 NIL
 1
@@ -211,23 +208,6 @@ true
 PENS
 "Honey" 1.0 0 -1184463 true "" "plot honey"
 
-BUTTON
-287
-460
-454
-493
-Remove one flower
-if any? flowers [ask one-of flowers [die]]
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
-
 SLIDER
 104
 460
@@ -258,36 +238,68 @@ number-of-bees
 NIL
 HORIZONTAL
 
-BUTTON
+TEXTBOX
+314
+472
 464
-460
-682
-493
-Put pesticides on a flower
-if any? flowers [ask one-of flowers with [not has-pesticides?][\nset shape \"flower pesticides\" \nset has-pesticides? true\n]\n]
+517
+Frequency of removal of a single random individual (0 = off):
+12
+0.0
+1
+
+INPUTBOX
+465
+471
+626
+531
+n-ticks-for-a-bee
+0.0
+1
+0
+Number
+
+INPUTBOX
+637
+471
+795
+531
+n-ticks-for-a-flower
+0.0
+1
+0
+Number
+
+BUTTON
+306
+543
+518
+576
+Remove one random bee
+if any? bees [ask one-of bees [die]]
 NIL
 1
 T
 OBSERVER
 NIL
-NIL
+B
 NIL
 NIL
 1
 
 BUTTON
-332
-502
-629
-535
-Contaminate a flower with herbicides
-if any? flowers [ask one-of flowers with [not has-herbicides?][\nset shape \"flower herbicides\" \nset has-herbicides? true\n]\n]
+536
+543
+763
+576
+Remove one random flower
+if any? flowers [ask one-of flowers [die]]
 NIL
 1
 T
 OBSERVER
 NIL
-NIL
+F
 NIL
 NIL
 1
@@ -295,19 +307,19 @@ NIL
 @#$#@#$#@
 ## BEES AND FLOWERS
 
-This model investigates the evolution of flowers and bees population numbers when both are subject to ecological stress caused by human activities, such as habitat destruction, and the use of herbicides and pesticides for agriculture.
+This model investigates the co-evolution of flowers and bees population numbers when each or both are subject to factors which may directly impact their present numbers. These could be any ecological stress conditions, like those imposed for example by human activities, such as chemical agriculture, which directly impacts the wild flora and the bees.
 
 ## HOW IT WORKS
 
-It is assumed that in the absence of any external factors, the population of a beehive remains constant in time, such that honey his constantly produced and saved for the future. This way it is possible to test the effect of external factors.
+It is assumed that in the absence of any external factors, the population of bees in a beehive remains constant in time, such that honey his constantly produced and saved for the future. This way it is possible to test the effect of external factors.
 
 Bees spend a limited time outside the beehive. They pollinate flowers in exchange for nectar and bring pollen to the beehive to produce honey for the colony. However, if a bee does not find any flowers to pollinate, she returns to the beehive, consumes honey and goes out again in search for flowers. If the beehive goes out of honey, bees cannot feed and die.
 
-Each pollinated flower will generate a new flower of the same species and die. If a flower has pesticides, bees will be killed whenever they try to pollinate her. And if a flower has herbicides, pollination will not work. 
+Each pollinated flower will generate a new flower of the same species and die.
 
 ## HOW TO USE IT
 
-Use the sliders "number-of-flowers" and "number-of-bees" to manipulate the initial number of flowers and bees, and click "setup" and "go" to start the experiment. At any time you can click the buttons "Remove one flower", "Put pesticides on a flower" and "Contaminate a flower with herbicides". The tittles are self-explanatory.
+Use the sliders "number-of-flowers" and "number-of-bees" to manipulate the initial number of flowers and bees, and click "setup" and "go" to start the experiment. At any time you can change the frequency at wich a random individual (a bee or a flower) is removed from the simulation by using the input boxes "n-ticks-for-a-bee" and "n-ticks-for-a-flower". The number 0 sets the removal off. You can also remove indivuals by hand by clicking the buttons "Remove a random bee" and "Remove a random flower".
 @#$#@#$#@
 default
 true
