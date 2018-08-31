@@ -1,1 +1,1 @@
-Welcome to bees
+Welcome
