@@ -32,7 +32,7 @@ to setup
   set honey 0
   create-beehives 1 [
     set shape "beehive"
-    set size 5
+    set size 6
     set color 44
   ]
   create-bees number-of-bees [
@@ -43,7 +43,7 @@ to setup
   ]
   create-flowers number-of-flowers [
     set shape "flower"
-    set size 2
+    set size 3
     setxy random-xcor random-ycor
     set pollinated? false
     set life-time random flowers-life-max-time
@@ -265,7 +265,7 @@ INPUTBOX
 795
 531
 n-ticks-for-a-flower
-0.0
+100.0
 1
 0
 Number
@@ -319,7 +319,7 @@ Each pollinated flower will generate a new flower of the same species and die.
 
 ## HOW TO USE IT
 
-Use the sliders "number-of-flowers" and "number-of-bees" to manipulate the initial number of flowers and bees, and click "setup" and "go" to start the experiment. At any time you can change the frequency at wich a random individual (a bee or a flower) is removed from the simulation by using the input boxes "n-ticks-for-a-bee" and "n-ticks-for-a-flower". The number 0 sets the removal off. You can also remove indivuals by hand by clicking the buttons "Remove a random bee" and "Remove a random flower".
+Use the sliders "number-of-flowers" and "number-of-bees" to manipulate the initial number of flowers and bees, and click "setup" and "go" to start the experiment. At any time you can change the frequency at which a random individual (a bee or a flower) is removed from the simulation by using the input boxes "n-ticks-for-a-bee" and "n-ticks-for-a-flower". The number 0 sets the removal off. You can also remove indivuals by hand by clicking the buttons "Remove a random bee" and "Remove a random flower".
 @#$#@#$#@
 default
 true
